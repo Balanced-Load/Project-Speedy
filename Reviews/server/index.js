@@ -21,11 +21,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/product/reviews', (req, res) => {
-  pool.query('select summary from reviews where id = 1', (err, results) => {
+  let id = req._parsedUrl.query;
+  id = id.slice(id.indexOf('=') + 1);
+  pool.query('select summary, recommend, response, reviewer_name, helpfulness from reviews where product_id = $1', [id], (err, results) => {
     if (err) {
       res.send(err);
     } else {
-      res.send(results.rows[0]);
+      res.send(results.rows);
     }
   })
 
