@@ -39,7 +39,7 @@ DROP TABLE IF EXISTS photos CASCADE;
 CREATE TABLE photos (
   id BIGSERIAL PRIMARY KEY,
   review_id INTEGER NULL DEFAULT NULL,
-  url VARCHAR(300) NULL DEFAULT NULL
+  urls VARCHAR(300) NULL DEFAULT NULL
 );
 
 \COPY photos(id, review_id, url) FROM '/home/tofu/Documents/hackreactor/Project-Speedy/Reviews/server/data/reviews_photos.csv' DELIMITER ',' CSV HEADER;
