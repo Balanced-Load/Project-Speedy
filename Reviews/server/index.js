@@ -21,20 +21,35 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/reviews', (req, res) => {
   let id = req._parsedUrl.query;
   id = id.slice(id.indexOf('=') + 1);
-  pool.query('select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id where product_id = $1', [id], (err, results) => {
+  pool.query('select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, urls, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id where product_id = $1' , [id], (err, results) => {
     if (err) {
+      console.log(err);
       res.send(err);
     } else {
+      let combine = {}
       results.rows.forEach((row) => {
-        row.photos = [row.urls];
-        let d = new Date(row.dates * 1000);
-        row.date = d.toISOString();
+        if (combine[row.review_id] === undefined) {
+          row.photos = [row.urls];
+          let d = new Date(row.dates * 1000);
+          row.date = d.toISOString();
+          row.urls = [row.urls];
+          row.photos = row.urls;
+          combine[row.review_id] = row;
+        } else {
+          combine[row.review_id].urls.push(row.urls);
+        }
       })
+
+      let output = [];
+      for (let i in combine) {
+        output.push(combine[i]);
+      }
+
       let reviews = {
         product: id,
         page: 0,
-        count: results.rows.length,
-        results: results.rows
+        count: output.length,
+        results: output
       };
       res.send(reviews);
     }
@@ -48,32 +63,36 @@ app.post('/reviews', (req, res) => {
 
   console.log(req.body);
 
-  let reviewsQuery = pool.query("SELECT max(id) FROM reviews", (err, results) => {
+  pool.query("SELECT max(id) FROM reviews", (err, results) => {
     if (err) {
       res.end(err);
     } else {
-      reviewID = results.rows[0].max + 1;
       pool.query("insert into reviews (product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) returning *", [req.body.product_id, req.body.rating, 0, req.body.summary, req.body.body, req.body.recommend, false, req.body.name, req.body.email, null, 0], (err, results) => {
         if(err) {
           console.log(err);
           res.end(err);
+        } else {
+          console.log(results.rows[0].id);
+          reviewID = results.rows[0].id;
+          const dbQueryPromises = [characteristicsQuery];
+          const dbQueryPromises2 = [];
+
+          for (let i = 0; i < req.body.photos.length; i++) {
+            dbQueryPromises2.push(photosQuery(i, req, reviewID));
+          }
+
+          Promise.all(dbQueryPromises).then(Promise.all(dbQueryPromises2).then(res.end()));
         }
       })
     }
   })
 
-  function photosQuery(input, req) {
+  function photosQuery(input, req, id) {
     return (
-      pool.query("SELECT max(id) FROM photos", (err, results) => {
-        if (err) {
+      pool.query("insert into photos (review_id, urls) values ($1, $2)", [id, req.body.photos[input]], (err, results) => {
+        if(err) {
+          console.log(err);
           res.end(err);
-        } else {
-          photosID = results.rows[0].max + 1;
-          pool.query("insert into photos (id, review_id, urls) values ($1, $2, $3)", [photosID, reviewID, req.body.photos[input]], (err, results) => {
-            if(err) {
-              res.end(err);
-            }
-          })
         }
       })
     )
@@ -92,13 +111,14 @@ app.post('/reviews', (req, res) => {
 
     }
   })
-  const dbQueryPromises = [reviewsQuery, characteristicsQuery];
+  // const dbQueryPromises = [reviewsQuery, characteristicsQuery];
+  // const dbQueryPromises2 = [];
 
-  for (let i = 0; i < req.body.photos.length; i++) {
-    dbQueryPromises.push(photosQuery(i, req));
-  }
+  // for (let i = 0; i < req.body.photos.length; i++) {
+  //   dbQueryPromises2.push(photosQuery(i, req, reviewID));
+  // }
 
-  Promise.all(dbQueryPromises).then(res.end());
+  // Promise.all(dbQueryPromises).then(Promise.all(dbQueryPromises2).then(res.end()));
 })
 
 app.get('/reviews/meta', (req, res) => {
