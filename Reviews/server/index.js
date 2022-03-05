@@ -40,6 +40,30 @@ app.get('/reviews', (req, res) => {
   })
 })
 
+app.post('/reviews', (req, res) => {
+  pool.query("SELECT max(id) FROM reviews", (err, results) => {
+    if (err) {
+      res.send(err);
+    } else {
+      //res.send(results.rows[0].max);
+      pool.query("insert into reviews (id, product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) returning *", [results.rows[0].max + 1, req.body.product_id, req.body.rating, 0, req.body.summary, req.body.body, req.body.recommend, false, req.body.name, req.body.email, null, 0], (err, results) => {
+        if(err) {
+          res.send(err);
+        } else {
+          res.send('ok');
+          // pool.query("insert into photos (review_id, urls) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)", [req.body.product_id, req.body.rating, new Date().getTime(), req.body.summary, req.body.body, req.body.recommend, false, req.body.name, req.body.email, null, 0], (err, results) => {
+          //   if(err) {
+          //     res.send(err);
+          //   } else {
+
+          //   }
+          // })
+        }
+      })
+    }
+  })
+})
+
 app.get('/reviews/meta', (req, res) => {
   let id = req._parsedUrl.query;
   id = id.slice(id.indexOf('=') + 1);
