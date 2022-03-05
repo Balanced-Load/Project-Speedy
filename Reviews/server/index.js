@@ -2,11 +2,12 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const { Pool, Client } = require('pg')
+const pass = require ('./config')
 
 const pool = new Pool({
   host: 'localhost',
   user: 'tofustore',
-  password: '56505under',
+  password: pass,
   database: 'test',
 })
 
@@ -120,3 +121,5 @@ app.get('/reviews/meta', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server listening on port: ${PORT}`);
 });
+
+module.exports = app;

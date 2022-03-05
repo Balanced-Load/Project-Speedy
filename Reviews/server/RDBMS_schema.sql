@@ -28,6 +28,10 @@ CREATE TABLE reviews (
 );
 
 \COPY reviews(id, product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness) FROM '/home/tofu/Documents/hackreactor/Project-Speedy/Reviews/server/data/reviews.csv' DELIMITER ',' CSV HEADER;
+\CREATE INDEX idx_id on reviews(id);
+\CREATE INDEX idx_product_id on reviews(product_id);
+\CREATE INDEX idx_reviews_rating on reviews(rating);
+
 
 -- ---
 -- Table 'photos'
@@ -43,6 +47,8 @@ CREATE TABLE photos (
 );
 
 \COPY photos(id, review_id, url) FROM '/home/tofu/Documents/hackreactor/Project-Speedy/Reviews/server/data/reviews_photos.csv' DELIMITER ',' CSV HEADER;
+\CREATE INDEX idx_photo_id on photos(id);
+\CREATE INDEX idx_photo_review_id on photos(review_id);
 
 
 -- ---
@@ -59,6 +65,8 @@ CREATE TABLE characteristics (
 );
 
 \COPY characteristics FROM '/home/tofu/Documents/hackreactor/Project-Speedy/Reviews/server/data/characteristics.csv' DELIMITER ',' CSV HEADER;
+\CREATE INDEX idx_characteristic_primary_id on characteristics(id);
+\CREATE INDEX idx_characteristic_product_id on characteristics(product_id);
 
 -- ---
 -- Table 'reviewCharacteristics'
@@ -75,6 +83,9 @@ CREATE TABLE reviewCharacteristics(
 );
 
 \COPY reviewCharacteristics FROM '/home/tofu/Documents/hackreactor/Project-Speedy/Reviews/server/data/characteristic_reviews.csv' DELIMITER ',' CSV HEADER;
+\CREATE INDEX idx_reviewCharacteristics_primary_id on reviewCharacteristics(id);
+\CREATE INDEX idx_reviewCharacteristics_characteristic_id on reviewCharacteristics(characteristic_id);
+\CREATE INDEX idx_reviewCharacteristics_review_id on reviewCharacteristics(review_id);
 
 
 -- ---
