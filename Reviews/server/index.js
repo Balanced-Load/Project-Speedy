@@ -2,11 +2,12 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const { Pool, Client } = require('pg')
+const pass = require ('./config')
 
 const pool = new Pool({
   host: 'localhost',
   user: 'tofustore',
-  password: '56505under',
+  password: pass,
   database: 'test',
 })
 
@@ -20,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/reviews', (req, res) => {
   let id = req._parsedUrl.query;
   id = id.slice(id.indexOf('=') + 1);
-  pool.query('select * from reviews left join photos on reviews.id = photos.review_id where product_id = $1', [id], (err, results) => {
+  pool.query('select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id where product_id = $1', [id], (err, results) => {
     if (err) {
       res.send(err);
     } else {
@@ -44,48 +45,60 @@ app.post('/reviews', (req, res) => {
   let reviewID = 0;
   let photosID = 0;
   let characteristicID = 0;
-  pool.query("SELECT max(id) FROM reviews", (err, results) => {
+
+  console.log(req.body);
+
+  let reviewsQuery = pool.query("SELECT max(id) FROM reviews", (err, results) => {
     if (err) {
-      res.send(err);
+      res.end(err);
     } else {
       reviewID = results.rows[0].max + 1;
-      pool.query("insert into reviews (id, product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) returning *", [reviewID, req.body.product_id, req.body.rating, 0, req.body.summary, req.body.body, req.body.recommend, false, req.body.name, req.body.email, null, 0], (err, results) => {
+      pool.query("insert into reviews (product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) returning *", [req.body.product_id, req.body.rating, 0, req.body.summary, req.body.body, req.body.recommend, false, req.body.name, req.body.email, null, 0], (err, results) => {
         if(err) {
-          res.send(err);
-        } else {
-          pool.query("SELECT max(id) FROM photos", (err, results) => {
-            if (err) {
-              res.send(err);
-            } else {
-              photosID = results.rows[0].max + 1;
-                pool.query("insert into photos (id, review_id, urls) values ($1, $2, $3)", [photosID, reviewID, req.body.photos[0]], (err, results) => {
-                  if(err) {
-                    res.send(err);
-                  } else {
-                    pool.query("SELECT max(id) FROM characteristics", (err, results) => {
-                      if (err) {
-                        res.send(err);
-                      } else {
-                        characteristicID = results.rows[0].max + 1;
-                        for (let i = 0; i < req.body.photos.length; i++) {
-                          pool.query("insert into characteristics (id, product_id, characteristic) values ($1, $2, $3)", [req.body.characteristics, req.body.product_id], (err, results) => {
-                            if(err) {
-                              res.send(err);
-                            } else {
-
-                            }
-                          })
-                        }
-                      }
-                    })
-                  }
-                })
-            }
-          })
+          console.log(err);
+          res.end(err);
         }
       })
     }
   })
+
+  function photosQuery(input, req) {
+    return (
+      pool.query("SELECT max(id) FROM photos", (err, results) => {
+        if (err) {
+          res.end(err);
+        } else {
+          photosID = results.rows[0].max + 1;
+          pool.query("insert into photos (id, review_id, urls) values ($1, $2, $3)", [photosID, reviewID, req.body.photos[input]], (err, results) => {
+            if(err) {
+              res.end(err);
+            }
+          })
+        }
+      })
+    )
+  }
+
+  let characteristicsQuery = pool.query("SELECT max(id) FROM characteristics", (err, results) => {
+    if (err) {
+      res.end(err);
+    } else {
+      characteristicID = results.rows[0].max + 1;
+      pool.query("insert into characteristics (id, product_id, characteristic) values ($1, $2, $3)", [req.body.characteristics, req.body.product_id], (err, results) => {
+        if(err) {
+          res.end(err);
+        }
+      })
+
+    }
+  })
+  const dbQueryPromises = [reviewsQuery, characteristicsQuery];
+
+  for (let i = 0; i < req.body.photos.length; i++) {
+    dbQueryPromises.push(photosQuery(i, req));
+  }
+
+  Promise.all(dbQueryPromises).then(res.end());
 })
 
 app.get('/reviews/meta', (req, res) => {
@@ -120,3 +133,5 @@ app.get('/reviews/meta', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server listening on port: ${PORT}`);
 });
+
+module.exports = app;
