@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/reviews', (req, res) => {
   let id = req._parsedUrl.query;
   id = id.slice(id.indexOf('=') + 1);
-  pool.query('select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, urls, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id where product_id = $1' , [id], (err, results) => {
+  pool.query('select * from entire_review where product_id = $1' , [id], (err, results) => {
     if (err) {
       console.log(err);
       res.send(err);
@@ -62,28 +62,21 @@ app.post('/reviews', (req, res) => {
   let characteristicID = 0;
 
   console.log(req.body);
-
-  pool.query("SELECT max(id) FROM reviews", (err, results) => {
-    if (err) {
+  pool.query("insert into reviews (product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) returning *", [req.body.product_id, req.body.rating, 0, req.body.summary, req.body.body, req.body.recommend, false, req.body.name, req.body.email, null, 0], (err, results) => {
+    if(err) {
+      console.log(err);
       res.end(err);
     } else {
-      pool.query("insert into reviews (product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) returning *", [req.body.product_id, req.body.rating, 0, req.body.summary, req.body.body, req.body.recommend, false, req.body.name, req.body.email, null, 0], (err, results) => {
-        if(err) {
-          console.log(err);
-          res.end(err);
-        } else {
-          console.log(results.rows[0].id);
-          reviewID = results.rows[0].id;
-          const dbQueryPromises = [characteristicsQuery];
-          const dbQueryPromises2 = [];
+      console.log(results.rows[0].id);
+      reviewID = results.rows[0].id;
+      const dbQueryPromises = [characteristicsQuery];
+      const dbQueryPromises2 = [];
 
-          for (let i = 0; i < req.body.photos.length; i++) {
-            dbQueryPromises2.push(photosQuery(i, req, reviewID));
-          }
+      for (let i = 0; i < req.body.photos.length; i++) {
+        dbQueryPromises2.push(photosQuery(i, req, reviewID));
+      }
 
-          Promise.all(dbQueryPromises).then(Promise.all(dbQueryPromises2).then(res.end()));
-        }
-      })
+      Promise.all(dbQueryPromises).then(Promise.all(dbQueryPromises2).then(res.end()));
     }
   })
 
@@ -155,3 +148,7 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+
+//old get
+
+//select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, urls, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id where product_id = $1
