@@ -95,6 +95,9 @@ CREATE TABLE reviewCharacteristics(
 ALTER TABLE photos ADD FOREIGN KEY (review_id) REFERENCES reviews (id);
 ALTER TABLE reviewCharacteristics ADD FOREIGN KEY (characteristic_id) REFERENCES characteristics (id);
 ALTER TABLE reviewCharacteristics ADD FOREIGN KEY (review_id) REFERENCES reviews (id);
+
+\CREATE MATERIALIZED VIEW entire_review as select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, urls, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id;
+
 -- ALTER TABLE meta ADD FOREIGN KEY (ratings_id) REFERENCES ratings (id);
 -- ALTER TABLE meta ADD FOREIGN KEY (recommended_id) REFERENCES recommended (id);
 -- ALTER TABLE meta ADD FOREIGN KEY (characteristics_id) REFERENCES characteristics (id);
