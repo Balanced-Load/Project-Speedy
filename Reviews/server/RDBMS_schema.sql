@@ -42,7 +42,7 @@ DROP TABLE IF EXISTS photos CASCADE;
 
 CREATE TABLE photos (
   id BIGSERIAL PRIMARY KEY,
-  review_id INTEGER NULL DEFAULT NULL,
+  review_id  BIGINT NULL DEFAULT NULL,
   urls VARCHAR(300) NULL DEFAULT NULL
 );
 
@@ -60,7 +60,7 @@ DROP TABLE IF EXISTS characteristics CASCADE;
 
 CREATE TABLE characteristics (
   id BIGSERIAL PRIMARY KEY,
-  product_id INTEGER NULL DEFAULT NULL,
+  product_id BIGINT NULL DEFAULT NULL,
   characteristic VARCHAR(20) NULL DEFAULT NULL
 );
 
@@ -77,8 +77,8 @@ DROP TABLE IF EXISTS reviewCharacteristics CASCADE;
 
 CREATE TABLE reviewCharacteristics(
   id BIGSERIAL PRIMARY KEY,
-  characteristic_id INTEGER NULL DEFAULT NULL,
-  review_id INTEGER NULL DEFAULT NULL,
+  characteristic_id BIGINT NULL DEFAULT NULL,
+  review_id BIGINT NULL DEFAULT NULL,
   rating INTEGER NULL DEFAULT NULL
 );
 
