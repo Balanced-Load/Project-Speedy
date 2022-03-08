@@ -12,7 +12,7 @@ const pool = new Pool({
 })
 
 const app = express();
-const PORT = 4000 || process.env.PORT;
+const PORT = 3000 || process.env.PORT;
 
 app.use(express.static('client/dist'));
 app.use(express.json());
