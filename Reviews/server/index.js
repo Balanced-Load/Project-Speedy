@@ -5,10 +5,10 @@ const { Pool, Client } = require('pg')
 const pass = require ('./config')
 
 const pool = new Pool({
-  host: 'localhost',
-  user: 'tofustore',
+  host: 'ec2-3-89-209-141.compute-1.amazonaws.com',
+  user: 'ubuntu',
   password: pass,
-  database: 'test',
+  database: 'sdc',
 })
 
 const app = express();
@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/reviews', (req, res) => {
   let id = req._parsedUrl.query;
   id = id.slice(id.indexOf('=') + 1);
-  pool.query('select * from entire_review where product_id = $1' , [id], (err, results) => {
+  pool.query('select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, urls, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id where product_id = $1' , [id], (err, results) => {
     if (err) {
       console.log(err);
       res.send(err);
@@ -152,3 +152,7 @@ module.exports = app;
 //old get
 
 //select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, urls, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id where product_id = $1
+
+//materialized view get
+
+//select * from entire_review where product_id = $1

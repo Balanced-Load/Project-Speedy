@@ -86,3 +86,5 @@ ALTER TABLE reviewCharacteristics ADD FOREIGN KEY (review_id) REFERENCES reviews
 
 \CREATE MATERIALIZED VIEW entire_review as select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, urls, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id;
 
+CREATE INDEX index_entire_review_product_id on entire_review(product_id);
+
