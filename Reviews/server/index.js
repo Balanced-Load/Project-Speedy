@@ -143,10 +143,6 @@ app.get('/reviews/meta', (req, res) => {
   })
 })
 
-app.get('/loaderio-17df8bc0ff4523118a4af7e12b0213af.txt', (req, res) => {
-  res.sendFile(path.join(__dirname, 'loaderio-17df8bc0ff4523118a4af7e12b0213af.txt'));
-})
-
 app.listen(PORT, () => {
   console.log(`Server listening on port: ${PORT}`);
 });
