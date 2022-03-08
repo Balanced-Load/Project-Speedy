@@ -153,6 +153,7 @@ app.listen(PORT, () => {
 
 module.exports = app;
 
+
 //old get
 
 //select product_id, rating, dates, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, urls, reviews.id as review_id from reviews left join photos on reviews.id = photos.review_id where product_id = $1
