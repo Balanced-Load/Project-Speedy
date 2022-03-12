@@ -70,13 +70,13 @@ app.post('/reviews', (req, res) => {
       console.log(results.rows[0].id);
       reviewID = results.rows[0].id;
       const dbQueryPromises = [characteristicsQuery];
-      const dbQueryPromises2 = [];
+      const photoPromises = [];
 
       for (let i = 0; i < req.body.photos.length; i++) {
-        dbQueryPromises2.push(photosQuery(i, req, reviewID));
+        photoPromises.push(photosQuery(i, req, reviewID));
       }
 
-      Promise.all(dbQueryPromises).then(Promise.all(dbQueryPromises2).then(res.end()));
+      Promise.all(dbQueryPromises).then(Promise.all(photoPromises).then(res.end()));
     }
   })
 
@@ -104,14 +104,6 @@ app.post('/reviews', (req, res) => {
 
     }
   })
-  // const dbQueryPromises = [reviewsQuery, characteristicsQuery];
-  // const dbQueryPromises2 = [];
-
-  // for (let i = 0; i < req.body.photos.length; i++) {
-  //   dbQueryPromises2.push(photosQuery(i, req, reviewID));
-  // }
-
-  // Promise.all(dbQueryPromises).then(Promise.all(dbQueryPromises2).then(res.end()));
 })
 
 app.get('/reviews/meta', (req, res) => {
